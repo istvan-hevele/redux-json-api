@@ -21,4 +21,4 @@ const actionTypes = {};
   'API_DELETE_FAILED'
 ].forEach(action => { actionTypes[action] = action; });
 
-export default actionTypes;
+module.exports = actionTypes;

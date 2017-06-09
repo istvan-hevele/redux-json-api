@@ -1,9 +1,11 @@
+const webpack = require('webpack');
+
 module.exports = {
   entry: './src/jsonapi.js',
-  output: {
-    path: `${__dirname}/build`,
-    filename: 'jsonapi.js'
-  },
+  // output: {
+  //   path: `${__dirname}/build`,
+  //   filename: 'jsonapi.js'
+  // },
   module: {
     loaders: [
       {
@@ -15,5 +17,17 @@ module.exports = {
         }
       }
     ]
-  }
+  },
+  output: {
+    libraryTarget: 'var',
+    library: 'ReduxJsonApi'
+  },
+  plugins: [
+    new webpack.optimize.UglifyJsPlugin({
+      compressor: {
+        screw_ie8: true,
+        warnings: false
+      }
+    })
+  ]
 };

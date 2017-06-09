@@ -226,10 +226,10 @@ export const deleteResource = (resource, {
         headers,
         method: 'DELETE',
         credentials: 'include'
-      }).then(() => {
+      }).then((response) => {
         dispatch(apiDeleted(resource));
-        onSuccess();
-        resolve();
+        onSuccess(response);
+        resolve(response);
       }).catch(error => {
         const err = error;
         err.resource = resource;

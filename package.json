@@ -7,7 +7,8 @@
     "build": "rimraf lib && babel ./src -d lib",
     "test": "mocha --compilers js:babel-core/register --recursive",
     "test:watch": "npm test -- --watch",
-    "lint": "eslint . ./"
+    "lint": "eslint . ./",
+    "browser-min": "webpack -d src/jsonapi.js dist/redux-jsonapi.js"
   },
   "repository": {
     "type": "git",
