@@ -134,6 +134,7 @@ export const createResource = (resource, {
 export const readEndpoint = (endpoint, {
   onSuccess: onSuccess = noop,
   onError: onError = noop,
+  cancelHandler = {},
   options = {
     indexLinks: undefined,
   }
@@ -149,22 +150,41 @@ export const readEndpoint = (endpoint, {
     const apiEndpoint = `${apiHost}${apiPath}/${endpoint}`;
 
     return new Promise((resolve, reject) => {
+      let isCancelled = false;
+      /* eslint-disable */
+      cancelHandler.cancel = () => {
+        isCancelled = true;
+        dispatch(apiReadFailed());
+        cancelHandler.cancel = () => null;
+      };
+      /*eslint-enable */
+
       apiRequest(`${apiEndpoint}`, {
         headers,
         credentials: 'include'
       })
         .then(json => {
-          dispatch(apiRead({ endpoint, options, ...json }));
-          onSuccess(json);
-          resolve(json);
+          if (!isCancelled) {
+            /* eslint-disable */
+            cancelHandler.cancel = () => null;
+            /*eslint-enable */
+            dispatch(apiRead({ endpoint, options, ...json }));
+            onSuccess(json);
+            resolve(json);
+          }
         })
         .catch(error => {
-          const err = error;
-          err.endpoint = endpoint;
+          if (!isCancelled) {
+            /* eslint-disable */
+            cancelHandler.cancel = () => null;
+            /*eslint-enable */
+            const err = error;
+            err.endpoint = endpoint;
 
-          dispatch(apiReadFailed(err));
-          onError(err);
-          reject(err);
+            dispatch(apiReadFailed(err));
+            onError(err);
+            reject(err);
+          }
         });
     });
   };
@@ -226,7 +246,7 @@ export const deleteResource = (resource, {
     if (Object.keys(params).length > 0) {
       endpoint += '?';
       endpoint += Object.keys(params)
-        .reduce((accumulator, key) => [...accumulator, `${key}=${params[key]}`])
+        .reduce((accumulator, key) => [...accumulator, `${key}=${params[key]}`], [])
         .join('&');
     }
 
