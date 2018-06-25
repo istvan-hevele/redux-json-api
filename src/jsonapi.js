@@ -227,6 +227,43 @@ export const updateResource = (resource, {
   };
 };
 
+export const updateResources = (resources, {
+  onSuccess: onSuccess = noop,
+  onError: onError = noop
+} = {}) => {
+  if (onSuccess !== noop || onError !== noop) {
+    console.warn('onSuccess/onError callbacks are deprecated. Please use returned promise: https://github.com/dixieio/redux-json-api/issues/17');
+  }
+  return (dispatch, getState) => {
+    dispatch(apiWillUpdate(resources));
+
+    const { host: apiHost, path: apiPath, headers } = getState().api.endpoint;
+    const endpoint = `${apiHost}${apiPath}/${resources[0].type}`;
+
+    return new Promise((resolve, reject) => {
+      apiRequest(endpoint, {
+        headers,
+        method: 'PATCH',
+        credentials: 'include',
+        body: JSON.stringify({
+          data: resources
+        })
+      }).then(json => {
+        dispatch(apiUpdated(json));
+        onSuccess(json);
+        resolve(json);
+      }).catch(error => {
+        const err = error;
+        err.resources = resources;
+
+        dispatch(apiUpdateFailed(err));
+        onError(err);
+        reject(err);
+      });
+    });
+  };
+};
+
 export const deleteResource = (resource, {
   onSuccess: onSuccess = noop,
   onError: onError = noop,
